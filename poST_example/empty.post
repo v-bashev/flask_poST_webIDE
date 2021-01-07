@@ -1,0 +1,11 @@
+PROGRAM <Name>
+
+    PROCESS <Name>
+
+        STATE <Name>
+            
+        END_STATE
+
+    END_PROCESS
+
+END_PROGRAM

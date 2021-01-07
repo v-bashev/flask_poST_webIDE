@@ -1,0 +1,578 @@
+PROGRAM Plant
+
+	// global: I или O определяется со стороны контроллера, т. е. для модели все наоборот INPUT – это OUTPUT. OUTPUT – INPUT (а при программной симуляции – это глобальные переменные)
+	VAR_INPUT
+		(* датчики положения лифта на этажах *)
+		onfloor0 : BOOL;
+		onfloor1 : BOOL;
+		onfloor2 : BOOL;
+		(* кнопки вызова лифта на этажах *)
+		call0 : BOOL;
+		call1 : BOOL;
+		call2 : BOOL;
+		(* кнопки перемещения на этаж (внутри лифта)  *)
+		button0 : BOOL;
+		button1 : BOOL;
+		button2 : BOOL;
+		(* датчики закрытия двери на этажах *)
+		doorclosed0 : BOOL;
+		doorclosed1 : BOOL;
+		doorclosed2 : BOOL;
+	END_VAR
+	
+	VAR_OUTPUT
+		(* управление перемещением лифта: *)
+		up : BOOL;
+		down : BOOL;
+		(* управление дверями на этажах *)
+		open0 : BOOL;
+		open1 : BOOL;
+		open2 : BOOL;
+		call0_LED : BOOL;
+		call1_LED : BOOL;
+		call2_LED : BOOL;
+		(* лампочки кнопок перемещения на этаж (внутри лифта)  *)
+		button0_LED : BOOL;
+		button1_LED : BOOL;
+		button2_LED : BOOL;
+		cur : INT;
+	END_VAR
+
+
+	PROCESS Init (* инициализация *)
+		STATE begin
+			START PROCESS Door0Sim;
+			START PROCESS Door1Sim;
+			START PROCESS Door2Sim;
+			START PROCESS ElevatorSim;
+			STOP;
+		END_STATE
+	END_PROCESS
+
+
+	PROCESS Door0Sim // +Door1..2Sim
+		VAR CONSTANT
+			DOOR_SPEED : REAL := 0.5;
+			DOOR_OPEN_COORD : REAL := -50;
+		END_VAR
+		VAR 
+			coord : REAL := 0.0;
+		END_VAR
+		
+		STATE check_open_close LOOPED 
+			IF open0 THEN
+				coord := coord - DOOR_SPEED;
+			ELSE
+				coord := coord + DOOR_SPEED;
+			END_IF
+			IF coord >= 0.0 THEN 
+				coord := 0.0;
+			END_IF
+			IF coord <= DOOR_OPEN_COORD THEN
+				coord := DOOR_OPEN_COORD;
+			END_IF
+			IF coord = 0.0 THEN
+				doorclosed0 := TRUE;
+			ELSE
+				doorclosed0 := FALSE;
+			END_IF
+		END_STATE
+	END_PROCESS
+
+	PROCESS Door1Sim
+		VAR CONSTANT
+			DOOR_SPEED : REAL := 0.5;
+			DOOR_OPEN_COORD : REAL := -50;
+		END_VAR
+		VAR 
+			coord : REAL := 0.0;
+		END_VAR
+		
+		STATE check_open_close LOOPED 
+			IF open1 THEN
+				coord := coord - DOOR_SPEED;
+			ELSE
+				coord := coord + DOOR_SPEED;
+			END_IF
+			IF coord >= 0.0 THEN 
+				coord := 0.0;
+			END_IF
+			IF coord <= DOOR_OPEN_COORD THEN // ~ -50.0
+				coord := DOOR_OPEN_COORD;
+			END_IF
+			IF coord = 0.0 THEN // ~ 
+				doorclosed1 := TRUE;
+			ELSE
+				doorclosed1 := FALSE;
+			END_IF
+		END_STATE
+	END_PROCESS
+	
+	PROCESS Door2Sim
+		VAR CONSTANT
+			DOOR_SPEED : REAL := 0.5;
+			DOOR_OPEN_COORD : REAL := -50;
+		END_VAR
+		VAR 
+			coord : REAL := 0.0;
+		END_VAR
+		
+		STATE check_open_close LOOPED 
+			IF open2 THEN
+				coord := coord - DOOR_SPEED;
+			ELSE
+				coord := coord + DOOR_SPEED;
+			END_IF
+			IF coord >= 0.0 THEN 
+				coord := 0.0;
+			END_IF
+			IF coord <= DOOR_OPEN_COORD THEN
+				coord := DOOR_OPEN_COORD;
+			END_IF
+			IF coord = 0.0 THEN 
+				doorclosed2 := TRUE;
+			ELSE
+				doorclosed2 := FALSE;
+			END_IF
+		END_STATE
+	END_PROCESS
+
+	PROCESS ElevatorSim //
+		VAR CONSTANT
+			ELEV_ACCEL : REAL := 0.25;
+			ELEV_MAX_SPEED : REAL := 0.5;
+			ELEV_DOWN_COORD : REAL := 440.0;
+		END_VAR
+		VAR 
+			v : REAL := 0.0;
+			coord : REAL := 0.0;
+		END_VAR
+		
+		STATE up_down LOOPED
+			// вычисляем скорость с учетом ограничений
+			IF up THEN
+				v := v - ELEV_ACCEL;
+			ELSIF down THEN
+				v := v + ELEV_ACCEL;
+			ELSE
+				v := 0.0;
+			END_IF
+			IF v > ELEV_MAX_SPEED THEN 
+				v := ELEV_MAX_SPEED;
+			ELSIF v < 0 - ELEV_MAX_SPEED THEN 
+				v := 0 - ELEV_MAX_SPEED;
+			END_IF
+
+			// вычисляем координату с учетом ограничений
+			coord := coord + v;
+			IF coord < 0.0 THEN 
+				coord := 0.0;
+			ELSIF coord > ELEV_DOWN_COORD THEN 
+				coord := ELEV_DOWN_COORD;
+			END_IF
+			
+			// имитация датчиков наличия лифта на этажах по координате:
+			onfloor0 := FALSE;
+			onfloor1 := FALSE;
+			onfloor2 := FALSE;
+			IF coord < 30.5 THEN 
+				onfloor2 := TRUE;
+			ELSIF (coord > 210.0) AND (coord < 235.0) THEN 
+				onfloor1 := TRUE;
+			ELSIF (coord > ELEV_DOWN_COORD - 30.5) THEN 
+				onfloor0 := TRUE;
+			END_IF
+		END_STATE
+	END_PROCESS
+END_PROGRAM
+
+//========================================================================================
+
+PROGRAM Controller
+
+	VAR_INPUT
+		(* датчики положения лифта на этажах *)
+		onfloor0 : BOOL;
+		onfloor1 : BOOL;
+		onfloor2 : BOOL;
+		(* кнопки вызова лифта на этажах *)
+		call0 : BOOL;
+		call1 : BOOL;
+		call2 : BOOL;
+		(* кнопки перемещения на этаж (внутри лифта)  *)
+		button0 : BOOL;
+		button1 : BOOL;
+		button2 : BOOL;
+		(* датчики закрытия двери на этажах *)
+		doorclosed0 : BOOL;
+		doorclosed1 : BOOL;
+		doorclosed2 : BOOL;
+
+	END_VAR
+	VAR_OUTPUT
+		(* управление перемещением лифта: *)
+		up : BOOL;
+		down : BOOL;
+		(* управление дверями на этажах *)
+		open0 : BOOL;
+		open1 : BOOL;
+		open2 : BOOL;
+		call0_LED : BOOL;
+		call1_LED : BOOL;
+		call2_LED : BOOL;
+		(* лампочки кнопок перемещения на этаж (внутри лифта)  *)
+		button0_LED : BOOL;
+		button1_LED : BOOL;
+		button2_LED : BOOL;
+		cur : INT; // номер текущего этажаs
+	END_VAR
+
+	VAR
+		target : INT; // номер целевого этажа
+	END_VAR
+
+	PROCESS Init (* инициализация *)
+		STATE begin
+			START PROCESS Call0Latch;
+			START PROCESS Call1Latch;
+			START PROCESS Call2Latch;
+			START PROCESS Button0Latch;
+			START PROCESS Button1Latch;
+			START PROCESS Button2Latch;
+			START PROCESS CheckCurFloor;
+			START PROCESS UpControl;
+			STOP;
+		END_STATE
+	END_PROCESS
+
+	(* работа со светодиодами подсветки кнопок 
+		технически это процессы управления, а не симуляции *)
+	PROCESS Call0Latch 
+		VAR 
+			prev : BOOL;
+		END_VAR
+		
+		STATE init
+			prev := NOT call0;
+			SET NEXT;
+		END_STATE
+
+		STATE check_ON_OFF LOOPED 
+			IF call0 AND NOT prev THEN
+				call0_LED := TRUE;
+			END_IF
+			IF NOT doorclosed0 AND open0 THEN 
+				call0_LED := FALSE;
+			END_IF
+				prev := call0;
+			END_STATE
+	END_PROCESS
+
+	PROCESS Call1Latch  
+		VAR 
+			prev : BOOL;
+		END_VAR
+		
+		STATE init
+			prev := NOT call1;
+			SET NEXT;
+		END_STATE
+
+		STATE check_ON_OFF LOOPED 
+			IF call1 AND NOT prev THEN
+				call1_LED := TRUE;
+			END_IF
+			IF NOT doorclosed1 AND open1 THEN 
+				call1_LED := FALSE;
+			END_IF
+			prev := call1;
+		END_STATE
+	END_PROCESS
+
+	PROCESS Call2Latch // 
+		VAR 
+			prev : BOOL;
+		END_VAR
+		
+		STATE init
+			prev := NOT call2;
+			SET NEXT;
+		END_STATE
+		
+		STATE check_ON_OFF LOOPED 
+			IF call2 AND NOT prev THEN
+				call2_LED := TRUE;
+			END_IF
+			IF NOT doorclosed2 AND open2 THEN 
+				call2_LED := FALSE;
+			END_IF
+			prev := call2;
+		END_STATE
+	END_PROCESS
+
+	PROCESS Button0Latch 
+		VAR 
+		prev : BOOL;
+		END_VAR
+		
+		STATE init
+			prev := NOT button0;
+			SET NEXT;
+		END_STATE
+
+		STATE check_ON_OFF LOOPED 
+			IF button0 AND NOT prev THEN
+				button0_LED := TRUE;
+			END_IF
+			IF NOT doorclosed0 AND open0 THEN 
+				button0_LED := FALSE;
+			END_IF
+				prev := button0;
+			END_STATE
+	END_PROCESS
+
+	PROCESS Button1Latch
+		VAR 
+			prev : BOOL;
+		END_VAR
+		
+		STATE init
+			prev := NOT button1;
+			SET NEXT;
+		END_STATE
+		
+		STATE check_ON_OFF LOOPED 
+			IF button1 AND NOT prev THEN
+				button1_LED := TRUE;
+			END_IF
+			IF NOT doorclosed1 AND open1 THEN 
+				button1_LED := FALSE;
+			END_IF
+			prev := button1;
+		END_STATE
+	END_PROCESS
+
+	PROCESS Button2Latch
+		VAR 
+			prev : BOOL;
+		END_VAR
+		
+		STATE init
+			prev := NOT button2;
+			SET NEXT;
+		END_STATE
+
+		STATE check_ON_OFF LOOPED 
+			IF button2 AND NOT prev THEN
+				button2_LED := TRUE;
+			END_IF
+			IF NOT doorclosed2 AND open2 THEN 
+				button2_LED := FALSE;
+			END_IF
+			prev := button2;
+		END_STATE
+	END_PROCESS
+
+	PROCESS CheckCurFloor
+		STATE check_floor
+			IF onfloor0 THEN 
+				cur := 0;
+			ELSIF onfloor1 THEN 
+				cur := 1;
+			ELSIF onfloor2 THEN 
+				cur := 2;
+			END_IF
+		END_STATE
+	END_PROCESS
+
+	PROCESS UpControl (* приоритет движения вверх + PROCESS DownControl *)
+		STATE check_target
+  			IF	(cur = 0 AND (call0_LED OR button0_LED)) OR // текущий?
+				(cur = 1 AND (call1_LED OR button1_LED)) OR 
+				(cur = 2 AND (call2_LED OR button2_LED)) THEN 
+				START PROCESS DoorCycle; 
+				SET STATE door_cycle;
+	  		ELSE
+				CASE (cur) OF // есть вызовы выше? - едем
+					0: 	IF ((call1_LED OR button1_LED) OR
+    						(call2_LED OR button2_LED))THEN // 
+							target := 2;
+							START PROCESS UpMotion;
+							SET NEXT;
+						END_IF
+					1: 	IF (call2_LED OR button2_LED) THEN // выше?
+							target := 2;
+							START PROCESS UpMotion;
+							SET NEXT;
+						ELSIF (call0_LED OR button0_LED) THEN // ниже?
+							START PROCESS DownControl;
+							STOP;
+						END_IF
+					2: 	START PROCESS DownControl; // только вниз
+						STOP;
+				END_CASE
+			END_IF
+		END_STATE
+
+		STATE check_stop_or_retarget // переместились?
+			IF (PROCESS UpMotion IN STATE INACTIVE) THEN // приехали?
+				START PROCESS DoorCycle; 
+				SET NEXT;
+			END_IF
+		END_STATE
+
+		STATE door_cycle 
+			IF (PROCESS DoorCycle IN STATE INACTIVE) THEN 
+				RESTART;
+			END_IF 			
+		END_STATE
+	END_PROCESS
+
+
+	PROCESS UpMotion // + DownMotion
+		STATE start
+			START PROCESS CheckAboveTarget;			
+			SET NEXT;
+		END_STATE
+		
+		STATE go
+			up := TRUE;
+			IF (PROCESS CheckAboveTarget IN STATE INACTIVE) THEN 
+				target := cur + 1; // if next floor
+				SET NEXT;
+			END_IF
+		END_STATE
+		
+		STATE check_next
+			IF (cur = target) THEN // приехали?
+				up := FALSE;
+				STOP;
+			END_IF			
+		END_STATE
+	END_PROCESS
+
+
+	PROCESS CheckAboveTarget // расширяемый на n этажей + CheckBelowTarget
+		STATE check_nearest 
+			CASE (cur) OF // 
+				0: 	IF (call1_LED OR button1_LED) THEN 
+						STOP;
+					END_IF
+				1:	IF (call2_LED OR button2_LED) THEN 
+						STOP;
+					END_IF 
+				2:	STOP;
+			END_CASE			
+		END_STATE
+	END_PROCESS
+
+
+	PROCESS DownControl (* приоритет движения вниз + PROCESS DownControl *)
+		STATE check_target
+	  		IF	(cur = 0 AND (call0 OR button0)) OR // текущий?
+				(cur = 1 AND (call1 OR button1)) OR 
+				(cur = 2 AND (call2 OR button2)) THEN 
+				START PROCESS DoorCycle; 
+				SET STATE door_cycle;
+		  	ELSE
+				CASE (cur) OF // есть вызовы нижу? - едем
+					0: 	START PROCESS UpControl; // только вверх
+						STOP;
+					1: 	IF (call0_LED OR button0_LED) THEN // ниже?
+							target := 0;
+							START PROCESS DownMotion;
+							SET NEXT;
+						ELSIF (call2_LED OR button2_LED) THEN // выше?
+							START PROCESS UpControl;
+							STOP;
+						END_IF
+					2: 	IF 	((call1_LED OR button1_LED) OR
+    						(call0_LED OR button0_LED))THEN // 
+							target := 0;
+							START PROCESS DownMotion;
+							SET NEXT;
+						END_IF
+				END_CASE
+			END_IF
+		END_STATE
+		
+		STATE check_stop_or_retarget // переместились?
+			IF (PROCESS DownMotion IN STATE INACTIVE) THEN // приехали?
+				START PROCESS DoorCycle; 
+				SET NEXT;
+			END_IF
+		END_STATE
+		
+		STATE door_cycle 
+			IF (PROCESS DoorCycle IN STATE INACTIVE) THEN 
+				RESTART;
+			END_IF 			
+		END_STATE
+	END_PROCESS
+
+
+	PROCESS DownMotion // + DownMotion
+		STATE start
+			START PROCESS CheckBelowTarget;			
+			SET NEXT;
+		END_STATE
+		
+		STATE go
+			down := TRUE;
+			IF (PROCESS CheckBelowTarget IN STATE INACTIVE) THEN 
+				target := cur - 1; // if next floor
+				SET NEXT;
+			END_IF
+		END_STATE
+	
+		STATE chech_next
+			IF (cur = target) THEN // приехали?
+				down := FALSE;
+				STOP;
+			END_IF			
+		END_STATE
+	END_PROCESS
+
+
+	PROCESS CheckBelowTarget // расширяемый на n этажей + CheckBelowTarget
+		STATE check_nearest 
+			CASE (cur) OF // 
+				0:	STOP;	
+				1:	IF (call0_LED OR button0_LED) THEN 
+						STOP;
+					END_IF
+				2:	IF (call1_LED OR button1_LED) THEN 
+						STOP;
+					END_IF
+			END_CASE			
+		END_STATE
+	END_PROCESS
+
+	PROCESS DoorCycle
+		STATE check_floor
+			CASE (cur) OF
+				0:  open0 := TRUE;
+				1:  open1 := TRUE;
+				2:  open2 := TRUE;
+			END_CASE
+			SET NEXT;
+		END_STATE
+	
+		STATE delay3s
+			TIMEOUT T#3s THEN
+				open0 := FALSE;
+				open1 := FALSE;
+				open2 := FALSE;
+			SET NEXT;
+			END_TIMEOUT
+		END_STATE
+		
+		STATE check_closed
+			IF 	(doorclosed0 AND 
+				doorclosed1 AND 
+				doorclosed2) THEN
+				STOP;
+			END_IF
+		END_STATE
+	END_PROCESS
+END_PROGRAM

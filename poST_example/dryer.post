@@ -1,0 +1,30 @@
+PROGRAM HandDryer
+
+    VAR_INPUT
+        hands : BOOL;
+    END_VAR
+
+    VAR_OUTPUT
+        control : BOOL;
+    END_VAR
+
+    PROCESS HandDryer
+        STATE Wait
+            IF hands THEN
+                control := TRUE;
+                SET NEXT;
+            END_IF
+        END_STATE
+
+        STATE Work
+            IF hands THEN
+                RESET TIMER;
+            END_IF
+            TIMEOUT T#2s THEN
+                control := FALSE;
+                SET STATE Wait;
+            END_TIMEOUT
+        END_STATE
+    END_PROCESS
+
+END_PROGRAM
