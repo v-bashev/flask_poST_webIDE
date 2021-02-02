@@ -3,7 +3,7 @@
         // Settings and Defaults
         var opt = $.extend({
             col_width: '65px',
-            start: 1,
+            start: 0,
             digits: 1.
         },in_opts);
         // Remove existing div and the textarea from previous run
