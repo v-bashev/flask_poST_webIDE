@@ -7,8 +7,14 @@
         <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" 
             integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" 
             crossorigin="anonymous">
-        <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
         <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+        <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+        <script type=text/javascript src="{{ url_for('static', filename='jquery-linenumbers.js') }}"></script>
+        <script>$('document').ready(function(){
+            $('#poST_code').linenumbers({col_width:'35px'});
+            
+        })</script>
     </head>
     <body>
         <form method="POST" style="height: 100%; padding: 10px;" enctype="multipart/form-data">
@@ -35,14 +41,14 @@
             </div>
             <div class="row" style="height: 70%; padding-bottom: 10px;">
                 <div class="col">
-                    <textarea type="text" name="poST_code" placeholder="poST code" autofocus>{{poST_code}}</textarea>
+                    <textarea type="text" id="poST_code" name="poST_code" placeholder="poST code" autofocus>{{poST_code}}</textarea>
                 </div>
                 <div class="col">
-                    <textarea type="text" name="ST_code" placeholder="ST code" readonly>{{ST_code}}</textarea>
+                    <textarea type="text" id="ST_code" name="ST_code" placeholder="ST code" readonly>{{ST_code}}</textarea>
                 </div>
             </div>
             <div class="row align-items-start" style="height: 25%; padding-bottom: 10px;">
-                <div class="col-8" style="height: 100%;">
+                <div class="col-6" style="height: 100%;">
                     <textarea type="text" name="out" placeholder="errors"  readonly>{{out}}</textarea>
                 </div>
                 <div class="col">
