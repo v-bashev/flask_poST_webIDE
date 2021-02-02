@@ -76,4 +76,4 @@ def get_main():
     return render_template("index.html", disable_poST="disabled", disable_ST="disabled", disable_XML="disabled")
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run()
