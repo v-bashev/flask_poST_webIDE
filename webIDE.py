@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, send_file, session
+from flask import Flask, render_template, redirect, url_for, session, request, send_file
 import os, subprocess, uuid
 
 app = Flask(__name__)
@@ -58,7 +58,8 @@ def post_methods():
         return send_file(user_path + "code.st", attachment_filename='code.st', as_attachment=True)
     elif request.form["action"] == "downloadXML":
         return send_file(user_path + "code.st", attachment_filename='code.st', as_attachment=True)
-        
+    elif request.form["action"] == "about":
+        return redirect(url_for('about'))
 
 @app.route('/', methods=["GET"])
 def get_main():
@@ -74,6 +75,12 @@ def get_main():
     else:
         session['user'] = uuid.uuid4()
     return render_template("index.html", disable_poST="disabled", disable_ST="disabled", disable_XML="disabled")
+
+@app.route('/about', methods=["GET", "POST"])
+def about():
+    if request.method == "POST":
+        return redirect(url_for('get_main'))
+    return render_template("about.html")
 
 if __name__ == "__main__":
     app.run()
