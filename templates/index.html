@@ -52,10 +52,10 @@
                     <textarea type="text" name="out" placeholder="errors"  readonly>{{out}}</textarea>
                 </div>
                 <div class="col">
-                    <div class="container" style="padding-bottom: 20px;">
+                    <div class="container" style="padding-bottom: 20px; padding-top: 32px; padding-left: 0px;">
                         <button type="submit" class="btn btn-dark" name="action" value="translate">Translate</button>
                     </div>
-                    <div class="container">
+                    <div class="container" style="padding-left: 0px;">
                         <div class="form-group">
                             <label>Open poST code:</label>
                             <form action="/" method="POST" enctype="multipart/form-data">
@@ -69,13 +69,13 @@
                     <div class="container">
                         <label>Downloads:</label>
                     </div>
-                    <div class="container" style="padding-bottom: 10px;">
+                    <div class="container" style="padding-bottom: 10px; padding-right: 0px;">
                         <button type="submit" class="btn btn-dark" name="action" value="downloadPoST" {{disable_poST}}>poST code</button>
                     </div>
-                    <div class="container" style="padding-bottom: 10px;">
+                    <div class="container" style="padding-bottom: 10px; padding-right: 0px;">
                         <button type="submit" class="btn btn-dark" name="action" value="downloadST" {{disable_ST}}>ST code</button>
                     </div>
-                    <div class="container">
+                    <div class="container" style="padding-bottom: 10px; padding-right: 0px;">
                         <button type="submit" class="btn btn-dark" name="action" value="downloadXML" {{disable_XML}}>XML Exchange</button>
                     </div>
                 </div>
