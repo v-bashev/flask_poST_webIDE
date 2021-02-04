@@ -80,7 +80,8 @@ def get_main():
 def about():
     if request.method == "POST":
         return redirect(url_for('get_main'))
-    return render_template("about.html")
+    p = subprocess.run("ls sessions/ | wc -w", shell=True, capture_output=True)
+    return render_template("about.html", num=p.stdout.decode("utf-8"))
 
 if __name__ == "__main__":
     app.run()
