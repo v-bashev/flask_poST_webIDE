@@ -11,13 +11,12 @@
         // Function run
         return this.each(function(){
             // Get some numbers sorted out for the CSS changes
-            var textarea_width = $(this).prop("offsetWidth");
+            var textarea_width = $(this).parent().prop("offsetWidth");
             var new_textarea_width = parseInt(textarea_width)-parseInt(opt.col_width);
-            var new_textarea_width_pr = (new_textarea_width * 100) / textarea_width
             // Create the new textarea and style it
             $(this).before('<textarea data-name="linenumbers" style="float:left;margin-right:'+'-'+new_textarea_width+'px;white-space:pre;overflow:hidden;" disabled="disabled"></textarea>');
             // Edit the existing textarea's styles
-            $(this).css({'width':new_textarea_width_pr+'%','float':'right'});
+            $(this).css({'width':new_textarea_width+'px','float':'right'});
             // Add a clearing div.
             $(this).after('<div style="clear:both;"></div>');
             // Define a simple variable for the line-numbers box
@@ -60,4 +59,3 @@
         });
     };
 })(jQuery);
-$('textarea').linenumbers();

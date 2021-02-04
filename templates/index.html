@@ -12,8 +12,10 @@
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
         <script type=text/javascript src="{{ url_for('static', filename='jquery-linenumbers.js') }}"></script>
         <script>$('document').ready(function(){
-            $('#poST_code').linenumbers({col_width:'35px'});
-            
+            $('textarea').linenumbers();
+            $(window).resize(function() { 
+                $('textarea').linenumbers(); 
+            });  
         })</script>
     </head>
     <body>
@@ -40,10 +42,10 @@
                 </div>
             </div>
             <div class="row" style="height: 70%; padding-bottom: 10px;">
-                <div class="col">
+                <div class="col-6">
                     <textarea type="text" id="poST_code" name="poST_code" placeholder="poST code" autofocus>{{poST_code}}</textarea>
                 </div>
-                <div class="col">
+                <div class="col-6">
                     <textarea type="text" id="ST_code" name="ST_code" placeholder="ST code" readonly>{{ST_code}}</textarea>
                 </div>
             </div>
