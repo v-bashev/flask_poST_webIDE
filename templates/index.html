@@ -20,15 +20,9 @@
     </head>
     <body>
         <form method="POST" enctype="multipart/form-data">
-            <div class="row" style="padding-bottom: 10px;">
+            <div class="row" style="padding-bottom: 5px;">
                 <div class="col">
-                    <button type="submit" class="btn btn-dark" name="action" value="programEmpty">Empty poST program</button>
-                </div>
-                <div class="col">
-                    <button type="submit" class="btn btn-dark" name="action" value="programDryer">Hand Dryer program</button>
-                </div>
-                <div class="col">
-                    <button type="submit" class="btn btn-dark" name="action" value="programElevator">Elevator program</button>
+                    <h2>Translator from the poST language to the IEC 61131-3 ST language</h2>
                 </div>
                 <div class="col-md-auto">
                     <div class="row">
@@ -49,37 +43,57 @@
                     <textarea type="text" id="ST_code" name="ST_code" placeholder="ST code" readonly>{{ST_code}}</textarea>
                 </div>
             </div>
-            <div class="row align-items-start" style="height: 25%; padding-bottom: 10px;">
+            <div class="row" style="height: 25%;">
                 <div class="col-6" style="height: 100%;">
                     <textarea type="text" name="out" placeholder="errors"  readonly>{{out}}</textarea>
                 </div>
                 <div class="col">
-                    <div class="container" style="padding-bottom: 20px; padding-top: 32px; padding-left: 0px;">
-                        <button type="submit" class="btn btn-dark" name="action" value="translate">Translate</button>
-                    </div>
-                    <div class="container" style="padding-left: 0px;">
-                        <div class="form-group">
-                            <label>Open poST code:</label>
-                            <form action="/" method="POST" enctype="multipart/form-data">
-                                <input type="file" name="file">
+                    <div class="row">
+                        <div class="col">
+                            <div class="container">
+                                <label>Translate to ST:</label>
+                            </div>
+                            <div class="container" style="padding-bottom: 2px;">
+                                <button type="submit" class="btn btn-dark" name="action" value="translate">Translate</button>
+                            </div>
+                            <div class="container">
+                                <label>Open poST code:</label>
+                                <form action="/" method="POST" enctype="multipart/form-data">
+                                    <input type="file" name="file" style="padding-bottom: 1px;">
+                                </form>
                                 <button type="submit" class="btn btn-dark" name="action" value="openPoST">Open</button>
-                            </form>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="container">
+                                <label>Downloads:</label>
+                            </div>
+                            <div class="container">
+                                <button type="submit" class="btn btn-dark" name="action" value="downloadPoST" {{disable_poST}}>poST code</button>
+                            </div>
+                            <div class="container">
+                                <button type="submit" class="btn btn-dark" name="action" value="downloadST" {{disable_ST}}>ST code</button>
+                            </div>
+                            <div class="container">
+                                <button type="submit" class="btn btn-dark" name="action" value="downloadXML" {{disable_XML}}>XML Exchange</button>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="container">
+                                <label>Examples:</label>
+                            </div>
+                            <div class="container">
+                                <button type="submit" class="btn btn-dark" name="action" value="programEmpty">Empty template</button>
+                            </div>
+                            <div class="container">
+                                <button type="submit" class="btn btn-dark" name="action" value="programDryer">Hand Dryer</button>
+                            </div>
+                            <div class="container">
+                                <button type="submit" class="btn btn-dark" name="action" value="programElevator">Elevator</button>
+                            </div>
                         </div>
                     </div>
-                </div>
-                <div class="col">
-                    <div class="container">
-                        <label>Downloads:</label>
-                    </div>
-                    <div class="container" style="padding-bottom: 10px; padding-right: 0px;">
-                        <button type="submit" class="btn btn-dark" name="action" value="downloadPoST" {{disable_poST}}>poST code</button>
-                    </div>
-                    <div class="container" style="padding-bottom: 10px; padding-right: 0px;">
-                        <button type="submit" class="btn btn-dark" name="action" value="downloadST" {{disable_ST}}>ST code</button>
-                    </div>
-                    <div class="container" style="padding-bottom: 10px; padding-right: 0px;">
-                        <button type="submit" class="btn btn-dark" name="action" value="downloadXML" {{disable_XML}}>XML Exchange</button>
-                    </div>
+                    <label style="width: 100%; text-align:right;">Institute of Automation and Electrometry SB RAS Cyber-Physical Systems lab 2021 (c)</label>
                 </div>
             </div>
         </form>
