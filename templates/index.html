@@ -15,7 +15,16 @@
             $('textarea').linenumbers();
             $(window).resize(function() { 
                 $('textarea').linenumbers(); 
-            });  
+            });
+            document.getElementById('poST_code').addEventListener('keydown', function(e) {
+                if (e.key == 'Tab') {
+                    e.preventDefault();
+                    var start = this.selectionStart;
+                    var end = this.selectionEnd;
+                    this.value = this.value.substring(0, start) + "\t" + this.value.substring(end);
+                    this.selectionStart = this.selectionEnd = start + 1;
+                }
+            });
         })</script>
     </head>
     <body>
@@ -36,7 +45,7 @@
             </div>
             <div class="row" style="height: 70%; padding-bottom: 10px;">
                 <div class="col-6">
-                    <textarea type="text" id="poST_code" name="poST_code" placeholder="poST code" autofocus>{{poST_code}}</textarea>
+                    <textarea type="text" id="poST_code" name="poST_code" placeholder="poST code" autofocus required>{{poST_code}}</textarea>
                 </div>
                 <div class="col-6">
                     <textarea type="text" id="ST_code" name="ST_code" placeholder="ST code" readonly>{{ST_code}}</textarea>
