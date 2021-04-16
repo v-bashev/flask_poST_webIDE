@@ -13,10 +13,10 @@ def read_from_file(file):
 
 def save_code(path, code):
     os.makedirs(path, exist_ok=True)
-    if os.path.exists(path + "code.st"):
-        subprocess.run("rm " + path + "code.st", shell=True)
+    if os.path.exists(path + "poST_code.st"):
+        subprocess.run("rm " + path + "poST_code.st", shell=True)
+        subprocess.run("rm " + path + "poST_code.xml", shell=True)
         subprocess.run("rm " + path + "out", shell=True)
-        subprocess.run("rm -r " + path + "src-gen", shell=True)
     with open(path + "code.post", "w") as f:
         f.write(code)
         f.close()
@@ -24,6 +24,8 @@ def save_code(path, code):
 def render_index(poST_code, ST_code, out):
     if ST_code is not None:
         return render_template("index.html", poST_code=poST_code, ST_code=ST_code, out=out)
+    if out is not None:
+        return render_template("index.html", poST_code=poST_code, out=out, disable_ST="disabled", disable_XML="disabled")
     return render_template("index.html", poST_code=poST_code, disable_ST="disabled", disable_XML="disabled")
 
 def load_example(path, file):
@@ -38,7 +40,9 @@ def post_methods():
         poST_code = request.form["poST_code"]
         save_code(user_path, poST_code)
         subprocess.run("./translate.sh " + str(session['user']), shell=True)
-        ST_code = read_from_file(user_path + "code.st")
+        ST_code = None
+        if os.path.exists(user_path + "poST_code.st"):
+            ST_code = read_from_file(user_path + "poST_code.st")
         out = read_from_file(user_path + "out")
         return render_index(poST_code, ST_code, out)
     elif request.form["action"] == "openPoST" and 'file' in request.files:
@@ -55,9 +59,9 @@ def post_methods():
     elif request.form["action"] == "downloadPoST":
         return send_file(user_path + "code.post", attachment_filename='code.post', as_attachment=True)
     elif request.form["action"] == "downloadST":
-        return send_file(user_path + "code.st", attachment_filename='code.st', as_attachment=True)
+        return send_file(user_path + "poST_code.st", attachment_filename='poST_code.st', as_attachment=True)
     elif request.form["action"] == "downloadXML":
-        return send_file(user_path + "code.st", attachment_filename='code.st', as_attachment=True)
+        return send_file(user_path + "poST_code.xml", attachment_filename='poST_code.xml', as_attachment=True)
     elif request.form["action"] == "about":
         return redirect(url_for('about'))
 
@@ -67,8 +71,8 @@ def get_main():
         user_path = 'sessions/' + str(session['user']) + '/'
         if os.path.exists(user_path + "code.post"):
             poST_code = read_from_file(user_path + "code.post")
-            if os.path.exists(user_path + "code.st"):
-                ST_code = read_from_file(user_path + "code.st")
+            if os.path.exists(user_path + "poST_code.st"):
+                ST_code = read_from_file(user_path + "poST_code.st")
                 out = read_from_file(user_path + "out")
                 return render_index(poST_code, ST_code, out)
             return render_index(poST_code, None, None)
