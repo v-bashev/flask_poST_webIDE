@@ -4,6 +4,8 @@ import os, subprocess, uuid
 app = Flask(__name__)
 app.secret_key = 'A0Zr98j/3yXR~XHH!jmN]LWX/,?RT'
 subprocess.run("chmod +x translate.sh", shell=True)
+if not os.path.exists("statistic.txt"):
+    subprocess.run("echo 0 > statistic.txt", shell=True)
 
 def read_from_file(file):
     file = open(file, "r")
@@ -78,14 +80,17 @@ def get_main():
             return render_index(poST_code, None, None)
     else:
         session['user'] = uuid.uuid4()
+        total = int(subprocess.run("cat statistic.txt", shell=True, capture_output=True).stdout.decode("utf-8").strip()) + 1
+        subprocess.run("echo \"" + total + "\" > statistic.txt", shell=True)
     return render_template("index.html", disable_poST="disabled", disable_ST="disabled", disable_XML="disabled")
 
 @app.route('/about', methods=["GET", "POST"])
 def about():
     if request.method == "POST":
         return redirect(url_for('get_main'))
-    p = subprocess.run("ls sessions/ | wc -w", shell=True, capture_output=True)
-    return render_template("about.html", num=p.stdout.decode("utf-8"))
+    total = subprocess.run("cat statistic.txt", shell=True, capture_output=True).stdout.decode("utf-8").strip()
+    direct = subprocess.run("ls sessions/ | wc -w", shell=True, capture_output=True).stdout.decode("utf-8").strip()
+    return render_template("about.html", total=total, direct=direct)
 
 if __name__ == "__main__":
     app.run()
