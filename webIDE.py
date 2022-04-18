@@ -1,11 +1,17 @@
 from flask import Flask, render_template, redirect, url_for, session, request, send_file
-import os, subprocess, uuid
+import os, subprocess, uuid, socket, time
 
 app = Flask(__name__)
 app.secret_key = 'A0Zr98j/3yXR~XHH!jmN]LWX/,?RT'
 subprocess.run("chmod +x translate.sh", shell=True)
 if not os.path.exists("statistic.txt"):
     subprocess.run("echo 0 > statistic.txt", shell=True)
+
+clientSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+try:
+    clientSocket.connect(("localhost", 8081))
+except Exception:
+    print("Not connected")
 
 def read_from_file(file):
     file = open(file, "r")
@@ -19,6 +25,7 @@ def save_code(path, code):
         subprocess.run("rm " + path + "poST_code.st", shell=True)
         subprocess.run("rm " + path + "poST_code.xml", shell=True)
         subprocess.run("rm " + path + "out", shell=True)
+    subprocess.run("touch " + path + "out", shell=True)
     with open(path + "code.post", "w") as f:
         f.write(code)
         f.close()
@@ -41,7 +48,17 @@ def post_methods():
     if request.form["action"] == "translate":  
         poST_code = request.form["poST_code"]
         save_code(user_path, poST_code)
-        subprocess.run("./translate.sh " + str(session['user']), shell=True)
+        try:
+            clientSocket.send((user_path + '\n').encode())
+            dataFromServer = clientSocket.recv(1024)
+        except Exception:
+            try:
+                clientSocket.close()
+                clientSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                clientSocket.connect(("localhost", 8081))
+            except Exception:
+                print("Not connected")
+                subprocess.run("./translate.sh " + str(session['user']), shell=True)
         ST_code = None
         if os.path.exists(user_path + "poST_code.st"):
             ST_code = read_from_file(user_path + "poST_code.st")
